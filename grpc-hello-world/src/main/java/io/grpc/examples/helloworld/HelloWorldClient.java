@@ -5,15 +5,17 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple client that requests a greeting from the {@link HelloWorldServer}.
+ *
+ * @author aaronchenwei
  */
 public class HelloWorldClient {
 
-  private static final Logger logger = Logger.getLogger(HelloWorldClient.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(HelloWorldClient.class);
 
   private final GreeterGrpc.GreeterBlockingStub blockingStub;
 
@@ -38,10 +40,10 @@ public class HelloWorldClient {
     try {
       response = blockingStub.sayHello(request);
     } catch (StatusRuntimeException e) {
-      logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+      logger.atWarn().log("RPC failed: {}", e.getStatus());
       return;
     }
-    logger.info("Greeting: " + response.getMessage());
+    logger.atInfo().log("Greeting: {}", response.getMessage());
   }
 
   /**

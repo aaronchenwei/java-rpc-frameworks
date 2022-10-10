@@ -7,16 +7,20 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * @author aaronchenwei
+ */
 public class ManualFlowControlServer {
 
-  private static final Logger logger =
-    Logger.getLogger(ManualFlowControlServer.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(ManualFlowControlServer.class);
 
   public static void main(String[] args) throws InterruptedException, IOException {
     // Service class implementation
     StreamingGreeterGrpc.StreamingGreeterImplBase svc = new StreamingGreeterGrpc.StreamingGreeterImplBase() {
+
       @Override
       public StreamObserver<HelloRequest> sayHelloStreaming(final StreamObserver<HelloReply> responseObserver) {
         // Set up manual flow control for the request stream. It feels backwards to configure the request
@@ -44,7 +48,7 @@ public class ManualFlowControlServer {
           public void run() {
             if (serverCallStreamObserver.isReady() && !wasReady) {
               wasReady = true;
-              logger.info("READY");
+              logger.atInfo().log("READY");
               // Signal the request sender to send one message. This happens when isReady() turns true, signaling that
               // the receive buffer has enough free space to receive more messages. Calling request() serves to prime
               // the message pump.
@@ -56,21 +60,22 @@ public class ManualFlowControlServer {
         serverCallStreamObserver.setOnReadyHandler(onReadyHandler);
 
         // Give gRPC a StreamObserver that can observe and process incoming requests.
-        return new StreamObserver<HelloRequest>() {
+        return new StreamObserver<>() {
+
           @Override
           public void onNext(HelloRequest request) {
             // Process the request and send a response or an error.
             try {
               // Accept and enqueue the request.
               String name = request.getName();
-              logger.info("--> " + name);
+              logger.atInfo().log("--> " + name);
 
               // Simulate server "work"
               Thread.sleep(100);
 
               // Send a response.
               String message = "Hello " + name;
-              logger.info("<-- " + message);
+              logger.atInfo().log("<-- " + message);
               HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
               responseObserver.onNext(reply);
 
@@ -92,7 +97,11 @@ public class ManualFlowControlServer {
             } catch (Throwable throwable) {
               throwable.printStackTrace();
               responseObserver.onError(
-                Status.UNKNOWN.withDescription("Error handling request").withCause(throwable).asException());
+                Status.UNKNOWN
+                  .withDescription("Error handling request")
+                  .withCause(throwable)
+                  .asException()
+              );
             }
           }
 
@@ -106,7 +115,7 @@ public class ManualFlowControlServer {
           @Override
           public void onCompleted() {
             // Signal the end of work when the client ends the request stream.
-            logger.info("COMPLETED");
+            logger.atInfo().log("COMPLETED");
             responseObserver.onCompleted();
           }
         };
@@ -119,20 +128,17 @@ public class ManualFlowControlServer {
       .build()
       .start();
 
-    logger.info("Listening on " + server.getPort());
+    logger.atInfo().log("Listening on " + server.getPort());
 
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-        System.err.println("Shutting down");
-        try {
-          server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      // Use stderr here since the logger may have been reset by its JVM shutdown hook.
+      System.err.println("Shutting down");
+      try {
+        server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        e.printStackTrace(System.err);
       }
-    });
+    }));
     server.awaitTermination();
   }
 }
