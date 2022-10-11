@@ -1,4 +1,4 @@
 rootProject.name = 'java-rpc-frameworks'
 include 'grpc-hello-world'
-include 'reactive-grpc-hello-world'
+include 'reactive-grpc-rxjava-hello-world'
 
