@@ -1,23 +1,24 @@
-package demo.hello.rx;
+package demo.hello.reactor;
 
 import demo.proto.HelloRequest;
 import demo.proto.HelloResponse;
-import demo.proto.RxGreeterGrpc;
+import demo.proto.ReactorGreeterGrpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 /**
  * This server implements a unary operation, a streaming response operation, and a bi-directional streaming operation.
  *
  * @author aaronchenwei
  */
-public class RxGrpcServer extends RxGreeterGrpc.GreeterImplBase {
+public class ReactorGrpcServer extends ReactorGreeterGrpc.GreeterImplBase {
 
   public static void main(String[] args) throws Exception {
     // Start the server
-    Server server = ServerBuilder.forPort(8888).addService(new RxGrpcServer()).build().start();
+    Server server = ServerBuilder.forPort(8888).addService(new ReactorGrpcServer()).build().start();
     server.awaitTermination();
   }
 
@@ -25,34 +26,34 @@ public class RxGrpcServer extends RxGreeterGrpc.GreeterImplBase {
    * Implement a UNARY operation
    */
   @Override
-  public Single<HelloResponse> greet(Single<HelloRequest> request) {
+  public Mono<HelloResponse> greet(Mono<HelloRequest> request) {
     return request
       .map(HelloRequest::getName)
       .map(name -> "Hello " + name)
       .map(greeting -> HelloResponse.newBuilder().setMessage(greeting).build());
   }
 
-
   /**
    * Implement a STREAMING RESPONSE operation
    */
   @Override
-  public Flowable<HelloResponse> multiGreet(Single<HelloRequest> request) {
+  public Flux<HelloResponse> multiGreet(Mono<HelloRequest> request) {
     return request
       .map(HelloRequest::getName)
-      .toFlowable()
-      .flatMap(
-        x -> Flowable.just("Welcome", "Hola", "Bonjour"),
-        (name, salutation) -> salutation + " " + name)
+      .flatMapMany(
+        name ->
+          Flux
+            .just("Welcome", "Hola", "Bonjour")
+            .map(salutation -> Tuples.of(name, salutation))
+      ).map(tuple -> tuple.getT1() + " " + tuple.getT2())
       .map(greeting -> HelloResponse.newBuilder().setMessage(greeting).build());
   }
-
 
   /**
    * Implement a BI-DIRECTIONAL STREAMING operation
    */
   @Override
-  public Flowable<HelloResponse> streamGreet(Flowable<HelloRequest> request) {
+  public Flux<HelloResponse> streamGreet(Flux<HelloRequest> request) {
     return request
       .map(HelloRequest::getName)
       .map(name -> "Greetings " + name)

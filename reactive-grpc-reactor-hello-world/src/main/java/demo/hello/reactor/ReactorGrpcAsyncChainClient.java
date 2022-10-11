@@ -1,35 +1,35 @@
-package demo.hello.rx;
+package demo.hello.reactor;
 
 import demo.proto.HelloRequest;
 import demo.proto.HelloResponse;
-import demo.proto.RxGreeterGrpc;
+import demo.proto.ReactorGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.reactivex.Single;
 import java.time.Duration;
+import reactor.core.publisher.Mono;
 
 /**
  * @author aaronchenwei
  */
-public class RxGrpcAsyncChainClient {
+public class ReactorGrpcAsyncChainClient {
 
   public static void main(String[] args) throws Exception {
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8888).usePlaintext().build();
-    RxGreeterGrpc.RxGreeterStub stub = RxGreeterGrpc.newRxStub(channel);
+    ReactorGreeterGrpc.ReactorGreeterStub stub = ReactorGreeterGrpc.newReactorStub(channel);
 
-    Single.just("World")
+    Mono.just("World")
       // Call UNARY service asynchronously
-      .map(RxGrpcAsyncChainClient::request)
+      .map(ReactorGrpcAsyncChainClient::request)
       .as(stub::greet)
       .map(HelloResponse::getMessage)
 
       // Call STREAMING RESPONSE service asynchronously
-      .map(RxGrpcAsyncChainClient::request)
+      .map(ReactorGrpcAsyncChainClient::request)
       .as(stub::multiGreet)
       .map(HelloResponse::getMessage)
 
       // Call BI-DIRECTIONAL STREAMING service asynchronously
-      .map(RxGrpcAsyncChainClient::request)
+      .map(ReactorGrpcAsyncChainClient::request)
       .as(stub::streamGreet)
       .map(HelloResponse::getMessage)
 
