@@ -18,6 +18,9 @@ repositories {
 
 ext {
     version_grpc = '1.49.2'
+    version_protoc = '3.21.7'
+    version_slf4j = '2.0.3'
+    version_logback = '1.4.4'
     version_junit = '5.9.1'
 }
 
@@ -29,8 +32,8 @@ dependencies {
 
     runtimeOnly "io.grpc:grpc-netty-shaded:${version_grpc}"
 
-    implementation 'org.slf4j:slf4j-api:2.0.3'
-    runtimeOnly 'ch.qos.logback:logback-classic:1.4.4'
+    implementation "org.slf4j:slf4j-api:${version_slf4j}"
+    runtimeOnly "ch.qos.logback:logback-classic:${version_logback}"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${version_junit}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${version_junit}"
@@ -38,7 +41,7 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.21.7'
+        artifact = "com.google.protobuf:protoc:${version_protoc}"
     }
     plugins {
         grpc {
