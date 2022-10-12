@@ -6,6 +6,7 @@ import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ManualFlowControlServer {
 
-  private static final Logger logger = LoggerFactory.getLogger(ManualFlowControlServer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static void main(String[] args) throws InterruptedException, IOException {
     // Service class implementation
@@ -48,7 +49,7 @@ public class ManualFlowControlServer {
           public void run() {
             if (serverCallStreamObserver.isReady() && !wasReady) {
               wasReady = true;
-              logger.atInfo().log("READY");
+              LOGGER.atInfo().log("READY");
               // Signal the request sender to send one message. This happens when isReady() turns true, signaling that
               // the receive buffer has enough free space to receive more messages. Calling request() serves to prime
               // the message pump.
@@ -68,14 +69,14 @@ public class ManualFlowControlServer {
             try {
               // Accept and enqueue the request.
               String name = request.getName();
-              logger.atInfo().log("--> " + name);
+              LOGGER.atInfo().setMessage("--> {}").addArgument(name).log();
 
               // Simulate server "work"
               Thread.sleep(100);
 
               // Send a response.
               String message = "Hello " + name;
-              logger.atInfo().log("<-- " + message);
+              LOGGER.atInfo().setMessage("<-- {}").addArgument(message).log();
               HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
               responseObserver.onNext(reply);
 
@@ -108,14 +109,14 @@ public class ManualFlowControlServer {
           @Override
           public void onError(Throwable t) {
             // End the response stream if the client presents an error.
-            t.printStackTrace();
+            LOGGER.atError().setCause(t).log();
             responseObserver.onCompleted();
           }
 
           @Override
           public void onCompleted() {
             // Signal the end of work when the client ends the request stream.
-            logger.atInfo().log("COMPLETED");
+            LOGGER.atInfo().setMessage("COMPLETED").log();
             responseObserver.onCompleted();
           }
         };
@@ -128,7 +129,7 @@ public class ManualFlowControlServer {
       .build()
       .start();
 
-    logger.atInfo().log("Listening on " + server.getPort());
+    LOGGER.atInfo().setMessage("Listening on {}").addArgument(server.getPort()).log();
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       // Use stderr here since the logger may have been reset by its JVM shutdown hook.

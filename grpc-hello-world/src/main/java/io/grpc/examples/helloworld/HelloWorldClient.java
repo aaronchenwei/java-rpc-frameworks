@@ -4,6 +4,7 @@ import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HelloWorldClient {
 
-  private static final Logger logger = LoggerFactory.getLogger(HelloWorldClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final GreeterGrpc.GreeterBlockingStub blockingStub;
 
@@ -34,16 +35,16 @@ public class HelloWorldClient {
    * Say hello to server.
    */
   public void greet(String name) {
-    logger.info("Will try to greet " + name + " ...");
+    LOGGER.atInfo().setMessage("Will try to greet {} ...").addArgument(name).log();
     HelloRequest request = HelloRequest.newBuilder().setName(name).build();
     HelloReply response;
     try {
       response = blockingStub.sayHello(request);
     } catch (StatusRuntimeException e) {
-      logger.atWarn().log("RPC failed: {}", e.getStatus());
+      LOGGER.atError().setMessage("RPC failed: {}").addArgument(e.getStatus()).setCause(e).log();
       return;
     }
-    logger.atInfo().log("Greeting: {}", response.getMessage());
+    LOGGER.atInfo().setMessage("Greeting: {}").addArgument(response.getMessage()).log();
   }
 
   /**

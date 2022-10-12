@@ -4,6 +4,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ManualFlowControlClient {
 
-  private static final Logger logger = LoggerFactory.getLogger(ManualFlowControlClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static void main(String[] args) throws InterruptedException {
     final CountDownLatch done = new CountDownLatch(1);
@@ -64,7 +65,7 @@ public class ManualFlowControlClient {
               if (iterator.hasNext()) {
                 // Send more messages if there are more messages to send.
                 String name = iterator.next();
-                logger.info("--> " + name);
+                LOGGER.atInfo().setMessage("--> {}").addArgument(name).log();
                 HelloRequest request = HelloRequest.newBuilder().setName(name).build();
                 requestStream.onNext(request);
               } else {
@@ -78,20 +79,20 @@ public class ManualFlowControlClient {
 
       @Override
       public void onNext(HelloReply value) {
-        logger.atInfo().log("<-- {}", value.getMessage());
+        LOGGER.atInfo().setMessage("<-- {}").addArgument(value.getMessage()).log();
         // Signal the sender to send one message.
         requestStream.request(1);
       }
 
       @Override
       public void onError(Throwable t) {
-        t.printStackTrace();
+        LOGGER.atError().setCause(t).log();
         done.countDown();
       }
 
       @Override
       public void onCompleted() {
-        logger.info("All Done");
+        LOGGER.atInfo().setMessage("All Done").log();
         done.countDown();
       }
     };

@@ -4,6 +4,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HelloWorldServer {
 
-  private static final Logger logger = LoggerFactory.getLogger(HelloWorldServer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Server server;
 
@@ -26,7 +27,7 @@ public class HelloWorldServer {
       .addService(new GreeterImpl())
       .build()
       .start();
-    logger.atInfo().log("Server started, listening on {}", port);
+    LOGGER.atInfo().setMessage("Server started, listening on {}").addArgument(port).log();
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       // Use stderr here since the logger may have been reset by its JVM shutdown hook.
       System.err.println("*** shutting down gRPC server since JVM is shutting down");
@@ -67,7 +68,7 @@ public class HelloWorldServer {
 
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      logger.atInfo().log("HelloRequest = {}", req);
+      LOGGER.atInfo().setMessage("HelloRequest = {}").addArgument(req).log();
       HelloReply reply = HelloReply.newBuilder()
         .setMessage("Hello " + req.getName())
         .build();
