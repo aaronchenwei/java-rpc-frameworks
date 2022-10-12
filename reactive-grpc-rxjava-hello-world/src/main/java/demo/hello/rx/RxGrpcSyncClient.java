@@ -7,11 +7,24 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ *
+ * @author aaronchenwei
+ */
 public class RxGrpcSyncClient {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public static void main(String[] args) throws Exception {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8888).usePlaintext().build();
+    ManagedChannel channel = ManagedChannelBuilder
+      .forAddress("localhost", 8888)
+      .usePlaintext()
+      .build();
     RxGreeterGrpc.RxGreeterStub stub = RxGreeterGrpc.newRxStub(channel);
 
     /*
@@ -22,12 +35,13 @@ public class RxGrpcSyncClient {
     /*
      * Call an async UNARY operation
      */
-    System.out.println(request
+    var res = request
       // Call service
       .as(stub::greet)
       // Map response
       .map(HelloResponse::getMessage)
-      .blockingGet());
+      .blockingGet();
+    LOGGER.atInfo().log("{}", res);
 
     /*
      * Call an async STREAMING RESPONSE operation
@@ -37,7 +51,7 @@ public class RxGrpcSyncClient {
       .as(stub::multiGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .blockingSubscribe(System.out::println);
+      .blockingSubscribe(LOGGER::info);
 
     /*
      * Call an async BI-DIRECTIONAL STREAMING operation
@@ -49,6 +63,9 @@ public class RxGrpcSyncClient {
       .as(stub::streamGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .blockingSubscribe(System.out::println);
+      .blockingSubscribe(LOGGER::info);
+
+    // shutdown
+    channel.shutdownNow().awaitTermination(30, TimeUnit.SECONDS);
   }
 }

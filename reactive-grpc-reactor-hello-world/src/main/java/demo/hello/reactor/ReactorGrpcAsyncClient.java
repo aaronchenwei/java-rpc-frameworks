@@ -5,18 +5,26 @@ import demo.proto.HelloResponse;
 import demo.proto.ReactorGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import java.lang.invoke.MethodHandles;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- *
  * @author aaronchenwei
  */
 public class ReactorGrpcAsyncClient {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public static void main(String[] args) throws Exception {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8888).usePlaintext().build();
+    ManagedChannel channel = ManagedChannelBuilder
+      .forAddress("localhost", 8888)
+      .usePlaintext()
+      .build();
     ReactorGreeterGrpc.ReactorGreeterStub stub = ReactorGreeterGrpc.newReactorStub(channel);
 
     /*
@@ -32,7 +40,7 @@ public class ReactorGrpcAsyncClient {
       .as(stub::greet)
       // Map response
       .map(HelloResponse::getMessage)
-      .subscribe(System.out::println);
+      .subscribe(LOGGER::info);
 
     /*
      * Call an async STREAMING RESPONSE operation
@@ -42,7 +50,7 @@ public class ReactorGrpcAsyncClient {
       .as(stub::multiGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .subscribe(System.out::println);
+      .subscribe(LOGGER::info);
 
     /*
      * Call an async BI-DIRECTIONAL STREAMING operation
@@ -54,8 +62,11 @@ public class ReactorGrpcAsyncClient {
       .as(stub::streamGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .subscribe(System.out::println);
+      .subscribe(LOGGER::info);
 
     Thread.sleep(Duration.ofSeconds(1).toMillis());
+
+    // shutdown
+    channel.shutdownNow().awaitTermination(30, TimeUnit.SECONDS);
   }
 }

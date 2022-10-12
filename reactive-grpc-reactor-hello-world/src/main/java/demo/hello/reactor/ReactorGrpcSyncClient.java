@@ -5,6 +5,10 @@ import demo.proto.HelloResponse;
 import demo.proto.ReactorGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -13,8 +17,13 @@ import reactor.core.publisher.Mono;
  */
 public class ReactorGrpcSyncClient {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public static void main(String[] args) throws Exception {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8888).usePlaintext().build();
+    ManagedChannel channel = ManagedChannelBuilder
+      .forAddress("localhost", 8888)
+      .usePlaintext()
+      .build();
     ReactorGreeterGrpc.ReactorGreeterStub stub = ReactorGreeterGrpc.newReactorStub(channel);
 
     /*
@@ -25,12 +34,13 @@ public class ReactorGrpcSyncClient {
     /*
      * Call an async UNARY operation
      */
-    System.out.println(request
+    request
       // Call service
       .as(stub::greet)
       // Map response
       .map(HelloResponse::getMessage)
-      .block());
+      .doOnNext(LOGGER::info)
+      .block();
 
     /*
      * Call an async STREAMING RESPONSE operation
@@ -40,7 +50,7 @@ public class ReactorGrpcSyncClient {
       .as(stub::multiGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .doOnNext(System.out::println)
+      .doOnNext(LOGGER::info)
       .blockLast();
 
     /*
@@ -53,7 +63,11 @@ public class ReactorGrpcSyncClient {
       .as(stub::streamGreet)
       // Map response
       .map(HelloResponse::getMessage)
-      .doOnNext(System.out::println)
+      .doOnNext(LOGGER::info)
       .blockLast();
+
+    // shutdown
+    channel.shutdownNow().awaitTermination(30, TimeUnit.SECONDS);
   }
+
 }

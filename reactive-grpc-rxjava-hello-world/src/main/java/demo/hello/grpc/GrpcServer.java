@@ -6,14 +6,28 @@ import demo.proto.HelloResponse;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import java.lang.invoke.MethodHandles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This server implements a unary operation, a streaming response operation, and a bi-directional streaming operation.
+ *
+ * @author aaronchenwei
  */
 public class GrpcServer extends GreeterGrpc.GreeterImplBase {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public static void main(String[] args) throws Exception {
     // Start the server
-    Server server = ServerBuilder.forPort(8888).addService(new GrpcServer()).build().start();
+    Server server = ServerBuilder
+      .forPort(8888)
+      .addService(new GrpcServer())
+      .build()
+      .start();
+    LOGGER.atInfo().log("GrpcServer has been started.");
+
     server.awaitTermination();
   }
 
@@ -26,7 +40,6 @@ public class GrpcServer extends GreeterGrpc.GreeterImplBase {
     responseObserver.onNext(HelloResponse.newBuilder().setMessage("Hello " + name).build());
     responseObserver.onCompleted();
   }
-
 
 
   /**
@@ -42,14 +55,13 @@ public class GrpcServer extends GreeterGrpc.GreeterImplBase {
   }
 
 
-
   /**
    * Implement a BI-DIRECTIONAL STREAMING operation
    */
   @Override
   public StreamObserver<HelloRequest> streamGreet(StreamObserver<HelloResponse> responseObserver) {
     // Notice how the programming model completely changes
-    return new StreamObserver<HelloRequest>() {
+    return new StreamObserver<>() {
       @Override
       public void onNext(HelloRequest request) {
         String name = request.getName();

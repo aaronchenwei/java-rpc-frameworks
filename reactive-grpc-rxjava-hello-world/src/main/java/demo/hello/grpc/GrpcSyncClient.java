@@ -5,36 +5,46 @@ import demo.proto.HelloRequest;
 import demo.proto.HelloResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This client demonstrates calling unary and streaming response operations with the gRPC blocking API.
+ *
+ * @author aaronchenwei
  */
 public class GrpcSyncClient {
-  public static void main(String[] args) {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8888).usePlaintext().build();
-    GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  public static void main(String[] args) throws Exception {
+    ManagedChannel channel = ManagedChannelBuilder
+      .forAddress("localhost", 8888)
+      .usePlaintext()
+      .build();
+    GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
 
     /*
      * Create a service request
      */
     HelloRequest request = HelloRequest.newBuilder().setName("World").build();
 
-
-
     /*
      * Call a blocking UNARY operation
      */
     HelloResponse response = blockingStub.greet(request);
-    System.out.println(response.getMessage());
-
-
+    LOGGER.atInfo().log("{}", response.getMessage());
 
     /*
      * Call a blocking STREAMING RESPONSE operation
      */
     blockingStub.multiGreet(request).forEachRemaining(r -> {
-      System.out.println(r.getMessage());
+      LOGGER.atInfo().log("{}", r.getMessage());
     });
+
+    // shutdown
+    channel.shutdownNow().awaitTermination(30, TimeUnit.SECONDS);
   }
 }
