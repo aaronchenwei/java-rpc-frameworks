@@ -40,7 +40,7 @@ protobuf {
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.49.2'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.50.2'
         }
         rxgrpc {
             artifact = 'com.salesforce.servicelibs:rxgrpc:1.2.3'
