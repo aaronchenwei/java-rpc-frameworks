@@ -5,8 +5,8 @@
  */
 //enableFeaturePreview("VERSION_CATALOGS")
 
-rootProject.name = 'java-rpc-frameworks'
+rootProject.name = "java-rpc-frameworks"
 
-include 'grpc-hello-world'
-include 'reactive-grpc-rxjava-hello-world'
-include 'reactive-grpc-reactor-hello-world'
+include("grpc-hello-world")
+include("reactive-grpc-rxjava-hello-world")
+include("reactive-grpc-reactor-hello-world")
