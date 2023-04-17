@@ -11,7 +11,7 @@ grpcProtobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpcStub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpcNetty = { module = "io.grpc:grpc-netty", version.ref = "grpc" }
 protocGenGrpcJava = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
-protoc = { module = "com.google.protobuf:protoc", version = "3.21.8" }
+protoc = { module = "com.google.protobuf:protoc", version = "3.22.3" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 junitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
