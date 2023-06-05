@@ -3,7 +3,7 @@ grpc = "1.50.2"
 junit5 = "5.9.2"
 slf4j = "2.0.3"
 logback = "1.4.7"
-reactivegrpc = "1.2.3"
+reactivegrpc = "1.2.4"
 
 [libraries]
 javaxAnnotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
