@@ -24,4 +24,4 @@ rxgrpcStub = { module = "com.salesforce.servicelibs:rxgrpc-stub", version.ref = 
 rxjava = { module = "io.reactivex.rxjava2:rxjava", version = "2.2.21" }
 
 [plugins]
-protobuf = { id = "com.google.protobuf", version = "0.9.1" }
+protobuf = { id = "com.google.protobuf", version = "0.9.3" }
